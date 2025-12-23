@@ -27,14 +27,14 @@ def apply_white_plotly_theme(fig, height: int = 420):
         xaxis=dict(
             color="#111827",
             tickfont=dict(color="#111827", family="Inter, system-ui, -apple-system, BlinkMacSystemFont"),
-            titlefont=dict(color="#111827", family="Inter, system-ui, -apple-system, BlinkMacSystemFont"),
+            title=dict(font=dict(color="#111827", family="Inter, system-ui, -apple-system, BlinkMacSystemFont")),
             gridcolor="rgba(0,0,0,0.15)",
             zerolinecolor="rgba(0,0,0,0.25)",
         ),
         yaxis=dict(
             color="#111827",
             tickfont=dict(color="#111827", family="Inter, system-ui, -apple-system, BlinkMacSystemFont"),
-            titlefont=dict(color="#111827", family="Inter, system-ui, -apple-system, BlinkMacSystemFont"),
+            title=dict(font=dict(color="#111827", family="Inter, system-ui, -apple-system, BlinkMacSystemFont")),
             gridcolor="rgba(0,0,0,0.15)",
             zerolinecolor="rgba(0,0,0,0.25)",
         ),
@@ -780,24 +780,21 @@ with tab1:
     fig.add_vline(x=S0, line_dash="dash", line_color="grey", opacity=0.6)
 
     fig.update_layout(
-        title="Payoff and P/L",
-        titlefont=dict(color="black"),
+        title=dict(text="Payoff and P/L", font=dict(color="#111827")),
         xaxis_title="Share price S",
         yaxis_title="P/L ($)",
         height=420,
         template="plotly_white",
         paper_bgcolor="white",
         plot_bgcolor="white",
-        font=dict(color="black"),
+        font=dict(color="#111827"),
         xaxis=dict(
-            color="black",
-            tickfont=dict(color="black"),
-            titlefont=dict(color="black"),
+            color="#111827",
+            tickfont=dict(color="#111827"),
         ),
         yaxis=dict(
-            color="black",
-            tickfont=dict(color="black"),
-            titlefont=dict(color="black"),
+            color="#111827",
+            tickfont=dict(color="#111827"),
         ),
         margin=dict(l=40, r=10, t=40, b=30),
         legend=dict(
@@ -806,10 +803,9 @@ with tab1:
             y=1.02,
             xanchor="right",
             x=1,
-            font=dict(color="black"),
+            font=dict(color="#111827"),
         ),
     )
-    fig.update_layout(title=dict(font=dict(color="black")))
 
     st.plotly_chart(fig, use_container_width=True)
 
@@ -943,10 +939,10 @@ with tab3:
                 template="plotly_white",
                 paper_bgcolor="white",
                 plot_bgcolor="white",
-                font=dict(color="black"),
-                titlefont=dict(color="black"),
-                xaxis=dict(color="black", tickfont=dict(color="black"), titlefont=dict(color="black")),
-                yaxis=dict(color="black", tickfont=dict(color="black"), titlefont=dict(color="black")),
+                font=dict(color="#111827"),
+                title=dict(font=dict(color="#111827")),
+                xaxis=dict(color="#111827", tickfont=dict(color="#111827")),
+                yaxis=dict(color="#111827", tickfont=dict(color="#111827")),
                 margin=dict(l=40, r=10, t=40, b=30),
             )
             st.plotly_chart(fig_p, use_container_width=True)
@@ -980,17 +976,16 @@ with tab3:
                 fig_v.add_hline(y=solved_iv_pct, line_width=1, line_dash="dot", line_color="black")
 
             fig_v.update_layout(
-                title="Realised volatility vs implied/model volatility",
-                titlefont=dict(color="black"),
+                title=dict(text="Realised volatility vs implied/model volatility", font=dict(color="#111827")),
                 xaxis_title="Date",
                 yaxis_title="Volatility (%)",
                 height=420,
                 template="plotly_white",
                 paper_bgcolor="white",
                 plot_bgcolor="white",
-                font=dict(color="black"),
-                xaxis=dict(color="black", tickfont=dict(color="black"), titlefont=dict(color="black")),
-                yaxis=dict(color="black", tickfont=dict(color="black"), titlefont=dict(color="black")),
+                font=dict(color="#111827"),
+                xaxis=dict(color="#111827", tickfont=dict(color="#111827")),
+                yaxis=dict(color="#111827", tickfont=dict(color="#111827")),
                 margin=dict(l=40, r=10, t=40, b=30),
                 legend=dict(
                     orientation="h",
@@ -998,7 +993,7 @@ with tab3:
                     y=1.02,
                     xanchor="right",
                     x=1,
-                    font=dict(color="black"),
+                    font=dict(color="#111827"),
                 ),
             )
             st.plotly_chart(fig_v, use_container_width=True)
@@ -1202,11 +1197,11 @@ with tab3:
                     )
 
                     fig_surf.update_layout(
-                        title=f"Implied Volatility Surface ({surface_opt_type}) — {ticker.strip().upper()}",
+                        title=dict(text=f"Implied Volatility Surface ({surface_opt_type}) — {ticker.strip().upper()}", font=dict(color="#111827")),
                         height=650,
                         template="plotly_white",
                         paper_bgcolor="white",
-                        font=dict(color="black"),
+                        font=dict(color="#111827"),
                         margin=dict(l=40, r=20, t=50, b=30),
                         scene=dict(
                             xaxis_title="Moneyness (S/K)",
@@ -1566,10 +1561,10 @@ with tab4:
         template="plotly_white",
         paper_bgcolor="white",
         plot_bgcolor="white",
-        font=dict(color="black"),
-        titlefont=dict(color="black"),
-        xaxis=dict(color="black", tickfont=dict(color="black"), titlefont=dict(color="black")),
-        yaxis=dict(color="black", tickfont=dict(color="black"), titlefont=dict(color="black")),
+        font=dict(color="#111827"),
+        title=dict(font=dict(color="#111827")),
+        xaxis=dict(color="#111827", tickfont=dict(color="#111827")),
+        yaxis=dict(color="#111827", tickfont=dict(color="#111827")),
         margin=dict(l=40, r=10, t=40, b=30),
     )
     st.plotly_chart(fig_hist, use_container_width=True)
@@ -1587,17 +1582,16 @@ with tab4:
         ))
 
     fig_paths.update_layout(
-        title="Sample simulated stock price paths",
+        title=dict(text="Sample simulated stock price paths", font=dict(color="#111827")),
         xaxis_title="Time (years)",
         yaxis_title="Share price",
         height=420,
         template="plotly_white",
         paper_bgcolor="white",
         plot_bgcolor="white",
-        font=dict(color="black"),
-        titlefont=dict(color="black"),
-        xaxis=dict(color="black", tickfont=dict(color="black"), titlefont=dict(color="black")),
-        yaxis=dict(color="black", tickfont=dict(color="black"), titlefont=dict(color="black")),
+        font=dict(color="#111827"),
+        xaxis=dict(color="#111827", tickfont=dict(color="#111827")),
+        yaxis=dict(color="#111827", tickfont=dict(color="#111827")),
         margin=dict(l=40, r=10, t=40, b=30),
     )
     st.plotly_chart(fig_paths, use_container_width=True)
