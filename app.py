@@ -1452,7 +1452,7 @@ with tab4:
         st.markdown(
             f"""
             <div class="mc-bubble mc-neutral">
-                <div class="mc-bubble-title">Sharpe ratio (ann.)</div>
+                <div class="mc-bubble-title">Sharpe ratio</div>
                 <div class="mc-bubble-value">{sharpe_unh_disp}</div>
             </div>
             """,
@@ -1497,7 +1497,7 @@ with tab4:
             st.markdown(
                 """
                 <div class="mc-bubble mc-neutral">
-                    <div class="mc-bubble-title">Sharpe ratio (ann.)</div>
+                    <div class="mc-bubble-title">Sharpe ratio</div>
                     <div class="mc-bubble-value">—</div>
                 </div>
                 """,
@@ -1539,7 +1539,7 @@ with tab4:
             st.markdown(
                 f"""
                 <div class="mc-bubble mc-neutral">
-                    <div class="mc-bubble-title">Sharpe ratio (ann.)</div>
+                    <div class="mc-bubble-title">Sharpe ratio</div>
                     <div class="mc-bubble-value">{sharpe_h_disp}</div>
                 </div>
                 """,
