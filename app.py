@@ -1553,20 +1553,21 @@ with tab4:
     fig_hist = px.histogram(
         hist_data,
         nbins=50,
+        histnorm="percent",  # show % probability per bin instead of raw counts
         title="Distribution of P/L at expiry",
         labels={"value": "P/L ($)"},
     )
+    fig_hist.update_layout(showlegend=False)
+
+    apply_white_plotly_theme(fig_hist, height=420)
     fig_hist.update_layout(
-        height=420,
-        template="plotly_white",
-        paper_bgcolor="white",
-        plot_bgcolor="white",
-        font=dict(color="#111827"),
-        title=dict(font=dict(color="#111827")),
-        xaxis=dict(color="#111827", tickfont=dict(color="#111827")),
-        yaxis=dict(color="#111827", tickfont=dict(color="#111827")),
-        margin=dict(l=40, r=10, t=40, b=30),
+        yaxis_title="Probability (%)",
+        xaxis_title="P/L ($)",
     )
+
+    # Force axis titles + ticks to true black for readability
+    fig_hist.update_xaxes(title_font=dict(color="black"), tickfont=dict(color="black"))
+    fig_hist.update_yaxes(title_font=dict(color="black"), tickfont=dict(color="black"))
     st.plotly_chart(fig_hist, use_container_width=True)
 
     # Show a few sample paths
@@ -1581,19 +1582,16 @@ with tab4:
             showlegend=False,
         ))
 
+    apply_white_plotly_theme(fig_paths, height=420)
     fig_paths.update_layout(
         title=dict(text="Sample simulated stock price paths", font=dict(color="#111827")),
         xaxis_title="Time (years)",
         yaxis_title="Share price",
-        height=420,
-        template="plotly_white",
-        paper_bgcolor="white",
-        plot_bgcolor="white",
-        font=dict(color="#111827"),
-        xaxis=dict(color="#111827", tickfont=dict(color="#111827")),
-        yaxis=dict(color="#111827", tickfont=dict(color="#111827")),
-        margin=dict(l=40, r=10, t=40, b=30),
     )
+
+    # Force axis titles + ticks to true black for readability
+    fig_paths.update_xaxes(title_font=dict(color="black"), tickfont=dict(color="black"))
+    fig_paths.update_yaxes(title_font=dict(color="black"), tickfont=dict(color="black"))
     st.plotly_chart(fig_paths, use_container_width=True)
 
     st.caption(
