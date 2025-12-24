@@ -4,7 +4,7 @@ An interactive quantitative finance dashboard for analysing option pricing, Gree
 
 Built in Python with Streamlit and Plotly, this project is designed as both an educational and analytical tool for exploring how option values respond to changes in market parameters and realised volatility.
 
-🔗 **Live app:** https://blackschole.streamlit.app/
+🔗 **Live app:** https://blackscholespricinginterface.streamlit.app/
 
 ---
 
