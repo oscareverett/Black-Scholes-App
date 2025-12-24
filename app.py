@@ -806,7 +806,7 @@ with tab1:
     fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
     enforce_black_axes(fig, x_title="Share price S", y_title="P/L ($)")
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 # ---- Tab 2: Greeks ----
 with tab2:
@@ -824,7 +824,7 @@ with tab2:
         fig_d = line_chart(delta_df, x="Share price", y="Net Delta", height=320, x_title="Share price", y_title="Net Delta")
         fig_d.add_hline(y=0, line_width=1, line_color="black", opacity=0.4)
         fig_d.add_vline(x=S0, line_dash="dash", line_color="grey", opacity=0.6)
-        st.plotly_chart(fig_d, use_container_width=True)
+        st.plotly_chart(fig_d, width="stretch")
     else:
         st.markdown(
             '<div class="greek-note"><b>Delta</b>: sensitivity of option value to a $1 change in the share price.</div>',
@@ -833,7 +833,7 @@ with tab2:
         delta_df = pd.DataFrame({"Share price": S_grid, "Delta": delta_grid})
         fig_d = line_chart(delta_df, x="Share price", y="Delta", height=320, x_title="Share price", y_title="Delta")
         fig_d.add_vline(x=S0, line_dash="dash", line_color="grey", opacity=0.6)
-        st.plotly_chart(fig_d, use_container_width=True)
+        st.plotly_chart(fig_d, width="stretch")
 
     # --- Gamma ---
     st.markdown(
@@ -842,7 +842,7 @@ with tab2:
     )
     gamma_df = pd.DataFrame({"Share price": S_grid, "Gamma": gamma_grid})
     fig_g = line_chart(gamma_df, x="Share price", y="Gamma", height=320, x_title="Share price", y_title="Gamma (per $)")
-    st.plotly_chart(fig_g, use_container_width=True)
+    st.plotly_chart(fig_g, width="stretch")
 
     # --- Vega ---
     st.markdown(
@@ -851,7 +851,7 @@ with tab2:
     )
     vega_df = pd.DataFrame({"Share price": S_grid, "Vega": vega_grid})
     fig_v = line_chart(vega_df, x="Share price", y="Vega", height=320, x_title="Share price", y_title="Vega ($ per 1%)")
-    st.plotly_chart(fig_v, use_container_width=True)
+    st.plotly_chart(fig_v, width="stretch")
 
     # --- Theta ---
     st.markdown(
@@ -860,7 +860,7 @@ with tab2:
     )
     theta_df = pd.DataFrame({"Share price": S_grid, "Theta": theta_grid})
     fig_t = line_chart(theta_df, x="Share price", y="Theta", height=320, x_title="Share price", y_title="Theta ($ per day)")
-    st.plotly_chart(fig_t, use_container_width=True)
+    st.plotly_chart(fig_t, width="stretch")
 
 with tab3:
     st.subheader("Realised vs Implied Volatility")
@@ -928,7 +928,7 @@ with tab3:
             fig_p = px.line(price_df, x="Date", y="Close", title=f"{ticker.upper()} — Close price")
             apply_white_plotly_theme(fig_p, height=360)
             enforce_black_axes(fig_p, x_title="Date", y_title="Close")
-            st.plotly_chart(fig_p, use_container_width=True)
+            st.plotly_chart(fig_p, width="stretch")
 
             # Volatility chart
             vol_df = pd.DataFrame({
@@ -962,7 +962,7 @@ with tab3:
             fig_v.update_layout(title=dict(text="Realised volatility vs implied/model volatility", font=dict(color=TEXT_DARK, family=FONT_FAMILY)))
             fig_v.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
             enforce_black_axes(fig_v, x_title="Date", y_title="Volatility (%)")
-            st.plotly_chart(fig_v, use_container_width=True)
+            st.plotly_chart(fig_v, width="stretch")
 
             st.caption(
                 "Dashed line = model σ. Dotted line = solved IV."
@@ -1179,7 +1179,7 @@ with tab3:
                         ),
                     )
 
-                    st.plotly_chart(fig_surf, use_container_width=True)
+                    st.plotly_chart(fig_surf, width="stretch")
 
                   
 
@@ -1544,7 +1544,7 @@ with tab4:
         xaxis_title="P/L ($)",
     )
     enforce_black_axes(fig_hist, x_title="P/L ($)", y_title="Probability (%)")
-    st.plotly_chart(fig_hist, use_container_width=True)
+    st.plotly_chart(fig_hist, width="stretch")
 
     # Show a few sample paths
     sample_n = min(50, S_paths.shape[0])
@@ -1565,7 +1565,7 @@ with tab4:
         yaxis_title="Share price",
     )
     enforce_black_axes(fig_paths, x_title="Time (years)", y_title="Share price")
-    st.plotly_chart(fig_paths, use_container_width=True)
+    st.plotly_chart(fig_paths, width="stretch")
 
     st.caption(
         "If realised volatility exceeds implied volatility, an option that is dynamically delta-hedged can be expected to return a positive P/L as volatility has been underpriced in the option. "
