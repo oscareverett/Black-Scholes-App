@@ -6,7 +6,7 @@ Built in Python with Streamlit and Plotly, this project is designed as both an e
 
 🔗 **Live app:** https://blackscholespricinginterface.streamlit.app/
 
-![Black–Scholes Option Pricing Lab Interface](images/Screenshot 2025-12-24 at 12.11.35 pm.png)
+![Black–Scholes Option Pricing Lab Interface](images/screenshot.png)
 
 ---
 
