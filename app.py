@@ -357,6 +357,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+
 st.title("Black–Scholes Option Pricing Lab")
 
 
@@ -1280,57 +1281,79 @@ with tab4:
     # Dynamic hedging toggle (now default True and new label)
     hedge_dyn = st.checkbox("Compute delta-hedged P/L (dynamic re-hedging)", value=True)
 
-    # Run simulation with sigma_real
-    S_paths = simulate_gbm_paths(S0, T, r, q, sigma_real, int(n_steps), int(n_paths), int(seed))
+    if "mc_results" not in st.session_state:
+        st.session_state.mc_results = None
+        st.session_state.mc_params = None
+
+    mc_params = (
+        float(S0), float(K), float(T), float(r), float(q),
+        float(sigma_real), float(sigma_hedge),
+        int(n_steps), int(n_paths), int(seed),
+        opt_type, int(qty), bool(hedge_dyn), float(premium_paid),
+    )
+
+    if st.session_state.mc_params != mc_params:
+        st.session_state.mc_results = None
+        st.session_state.mc_params = mc_params
+
+    run_mc = st.button("Run simulation", type="primary")
+
+    if run_mc:
+        # Run simulation with sigma_real
+        S_paths = simulate_gbm_paths(S0, T, r, q, sigma_real, int(n_steps), int(n_paths), int(seed))
+        S_T = S_paths[:, -1]
+
+        # Unhedged P/L at expiry
+        if opt_type == "Call":
+            payoff_T = qty * np.maximum(S_T - K, 0.0)
+        else:
+            payoff_T = qty * np.maximum(K - S_T, 0.0)
+
+        pl_unhedged = payoff_T - premium_paid
+
+        # Delta-hedged P/L
+        if hedge_dyn:
+            dt = T / int(n_steps)
+            pl_hedged = np.zeros(len(S_T))
+
+            for i in range(len(S_T)):
+                cash = -premium_paid
+                shares = 0.0
+                tau = T
+                S_path = S_paths[i]
+
+                for t in range(len(S_path) - 1):
+                    delta = qty * option_delta_at(S_path[t], K, tau, r, q, sigma_hedge, opt_type)
+                    target_shares = -delta
+
+                    d_shares = target_shares - shares
+                    cash -= d_shares * S_path[t]
+                    shares = target_shares
+
+                    cash += shares * S_path[t] * q * dt
+                    cash *= np.exp(r * dt)
+                    tau = max(0.0, tau - dt)
+
+                cash += shares * S_path[-1]
+                cash += payoff_T[i]
+                pl_hedged[i] = cash
+        else:
+            pl_hedged = np.full(len(S_T), np.nan)
+
+        st.session_state.mc_results = {
+            "S_paths": S_paths,
+            "pl_unhedged": pl_unhedged,
+            "pl_hedged": pl_hedged,
+        }
+
+    if st.session_state.mc_results is None:
+        st.info("Click Run simulation to generate results.")
+        st.stop()
+
+    S_paths = st.session_state.mc_results["S_paths"]
+    pl_unhedged = st.session_state.mc_results["pl_unhedged"]
+    pl_hedged = st.session_state.mc_results["pl_hedged"]
     S_T = S_paths[:, -1]
-
-    # --- Unhedged P/L at expiry (buy option, no hedge) ---
-    if opt_type == "Call":
-        payoff_T = qty * np.maximum(S_T - K, 0.0)
-    else:
-        payoff_T = qty * np.maximum(K - S_T, 0.0)
-
-    pl_unhedged = payoff_T - premium_paid
-
-    # --- Dynamically delta-hedged P/L (gamma scalping via re-hedging) ---
-    if hedge_dyn:
-        dt = T / int(n_steps)
-        pl_hedged = np.zeros(len(S_T))
-
-        for i in range(len(S_T)):
-            cash = -premium_paid  # pay premium at t=0
-            shares = 0.0
-            tau = T
-            S_path = S_paths[i]
-
-            for t in range(len(S_path) - 1):
-                # compute delta using sigma_hedge (your hedge model)
-                delta = qty * option_delta_at(S_path[t], K, tau, r, q, sigma_hedge, opt_type)
-
-                # target hedge is -delta (delta-neutral portfolio)
-                target_shares = -delta
-
-                # rebalance hedge
-                d_shares = target_shares - shares
-                cash -= d_shares * S_path[t]
-                shares = target_shares
-
-                # receive dividend yield on held shares
-                cash += shares * S_path[t] * q * dt
-
-                # accrue interest on cash
-                cash *= np.exp(r * dt)
-                tau = max(0.0, tau - dt)
-
-            # close hedge at expiry
-            cash += shares * S_path[-1]
-
-            # add option payoff at expiry
-            cash += payoff_T[i]
-
-            pl_hedged[i] = cash
-    else:
-        pl_hedged = np.full(len(S_T), np.nan)
 
     # Summary stats (include tail percentiles)
     mean_pl_unhedged = float(np.mean(pl_unhedged))
@@ -1363,7 +1386,6 @@ with tab4:
         if pl_value is None or (isinstance(pl_value, float) and np.isnan(pl_value)):
             return ""
         return "mc-positive" if pl_value >= 0 else "mc-negative"
-
 
     # Compute Sharpe ratios for both unhedged and hedged
     sharpe_unhedged = sharpe_annualised_from_pl(pl_unhedged, premium_paid, T)
