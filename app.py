@@ -4,43 +4,66 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timezone
+
 from scipy.stats import norm
+
+# -----------------------------
+# Styling constants
+# -----------------------------
+FONT_FAMILY = "Inter, system-ui, -apple-system, BlinkMacSystemFont"
+TEXT_DARK = "#111827"
+GRID_LIGHT = "rgba(0,0,0,0.15)"
+ZEROLINE = "rgba(0,0,0,0.25)"
 
 # --- Plotly white-theme helper for consistent chart styling ---
 def apply_white_plotly_theme(fig, height: int = 420):
     """Force a consistent white theme for Plotly figures (so px and go look identical)."""
-    # Preserve any existing title text; if none, force empty string so Plotly doesn't render "undefined"
-    existing_title = ""
-    try:
-        if fig.layout.title and fig.layout.title.text:
-            existing_title = str(fig.layout.title.text)
-    except Exception:
-        existing_title = ""
-
+    # Shorter, safe extraction of existing title text
+    existing_title = getattr(getattr(fig.layout, "title", None), "text", "") or ""
     fig.update_layout(
         height=height,
         template="plotly_white",
         paper_bgcolor="white",
         plot_bgcolor="white",
-        font=dict(color="#111827", family="Inter, system-ui, -apple-system, BlinkMacSystemFont"),
-        title=dict(text=existing_title, font=dict(color="#111827", family="Inter, system-ui, -apple-system, BlinkMacSystemFont")),
+        font=dict(color=TEXT_DARK, family=FONT_FAMILY),
+        title=dict(text=existing_title, font=dict(color=TEXT_DARK, family=FONT_FAMILY)),
         xaxis=dict(
-            color="#111827",
-            tickfont=dict(color="#111827", family="Inter, system-ui, -apple-system, BlinkMacSystemFont"),
-            title=dict(font=dict(color="#111827", family="Inter, system-ui, -apple-system, BlinkMacSystemFont")),
-            gridcolor="rgba(0,0,0,0.15)",
-            zerolinecolor="rgba(0,0,0,0.25)",
+            color=TEXT_DARK,
+            tickfont=dict(color=TEXT_DARK, family=FONT_FAMILY),
+            title=dict(font=dict(color=TEXT_DARK, family=FONT_FAMILY)),
+            gridcolor=GRID_LIGHT,
+            zerolinecolor=ZEROLINE,
         ),
         yaxis=dict(
-            color="#111827",
-            tickfont=dict(color="#111827", family="Inter, system-ui, -apple-system, BlinkMacSystemFont"),
-            title=dict(font=dict(color="#111827", family="Inter, system-ui, -apple-system, BlinkMacSystemFont")),
-            gridcolor="rgba(0,0,0,0.15)",
-            zerolinecolor="rgba(0,0,0,0.25)",
+            color=TEXT_DARK,
+            tickfont=dict(color=TEXT_DARK, family=FONT_FAMILY),
+            title=dict(font=dict(color=TEXT_DARK, family=FONT_FAMILY)),
+            gridcolor=GRID_LIGHT,
+            zerolinecolor=ZEROLINE,
         ),
         margin=dict(l=40, r=10, t=40, b=30),
-        legend=dict(font=dict(color="#111827", family="Inter, system-ui, -apple-system, BlinkMacSystemFont")),
+        legend=dict(font=dict(color=TEXT_DARK, family=FONT_FAMILY)),
     )
+    return fig
+
+
+# --- Plotly axis/text helpers for concision and consistency ---
+def enforce_black_axes(fig, x_title: str = None, y_title: str = None):
+    """Force axis titles/ticks to pure black for readability across themes."""
+    if x_title is not None:
+        fig.update_xaxes(title_text=x_title)
+    if y_title is not None:
+        fig.update_yaxes(title_text=y_title)
+    fig.update_xaxes(title_font=dict(color="black"), tickfont=dict(color="black"))
+    fig.update_yaxes(title_font=dict(color="black"), tickfont=dict(color="black"))
+    return fig
+
+
+def line_chart(df: pd.DataFrame, x: str, y: str, title: str = "", height: int = 320, x_title: str = None, y_title: str = None):
+    """Small wrapper so all line charts share styling."""
+    fig = px.line(df, x=x, y=y, title=title)
+    apply_white_plotly_theme(fig, height=height)
+    enforce_black_axes(fig, x_title=x_title, y_title=y_title)
     return fig
 
 try:
@@ -182,7 +205,6 @@ def implied_volatility(market_price, S, K, T, r, q, opt_type,
 
     return 0.5 * (lo + hi)
 
-# (Theta is easy to add later if you want; we’ll keep V1 simple.)
 
 # -----------------------------
 # Payoff helpers
@@ -305,7 +327,6 @@ def fetch_spot_price_yahoo(ticker: str):
 
 st.set_page_config(page_title="Option Mechanics Lab (V1)", layout="wide")
 
-# --- Custom CSS for tab labels ---
 st.markdown(
     """
     <style>
@@ -353,7 +374,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# --- Sidebar header / attribution ---
 LINKEDIN_URL = "https://www.linkedin.com/in/oscareverett"  # <- replace with your LinkedIn
 
 st.sidebar.markdown("## 📈 Black–Scholes Model")
@@ -420,7 +440,7 @@ with st.sidebar.expander("Implied volatility", expanded=False):
 
     iv = implied_volatility(market_price, S0, K, T, r, q, opt_type)
     if iv is None:
-        st.caption("IV: — (enter a valid market price)")
+        st.caption("IV: - (enter a valid market price)")
     else:
         st.caption(f"IV ≈ {iv:.4f} ({iv*100:.2f}%)")
 
@@ -435,6 +455,7 @@ S_min = max(0.1, 0.5 * K)
 S_max = 1.5 * K
 S_grid = np.linspace(S_min, S_max, 80)
 
+#
 # -----------------------------
 # Compute prices and Greeks over grid
 # -----------------------------
@@ -448,9 +469,6 @@ else:
     price_grid = qty * np.array([bs_put_price(S, K, T, r, q, sigma) for S in S_grid])
     delta_grid = qty * np.array([bs_put_delta(S, K, T, r, q, sigma) for S in S_grid])
 
-pl_payoff_grid = payoff_grid - premium if 'premium' in locals() else None
-pl_price_grid = price_grid - premium if 'premium' in locals() else None
-
 gamma_grid = qty * np.array([bs_gamma(S, K, T, r, q, sigma) for S in S_grid])
 vega_grid = qty * np.array([bs_vega(S, K, T, r, q, sigma) for S in S_grid])
 
@@ -459,8 +477,9 @@ if opt_type == "Call":
 else:
     theta_grid = qty * np.array([bs_put_theta(S, K, T, r, q, sigma) for S in S_grid]) / 365
 
+#
 # Current option value and Greeks at S0
-
+#
 if opt_type == "Call":
     option_price = bs_call_price(S0, K, T, r, q, sigma)
     current_price = qty * option_price
@@ -478,6 +497,10 @@ if opt_type == "Call":
 else:
     current_theta = qty * bs_put_theta(S0, K, T, r, q, sigma)/365
 
+# Premium paid/received for the position (used for P/L calculations)
+premium = float(current_price)
+
+#
 # -----------------------------
 # Delta hedging (shares)
 # -----------------------------
@@ -485,8 +508,6 @@ else:
 hedge_shares = -current_delta if auto_delta_hedge else 0.0
 net_shares = shares_owned + hedge_shares
 net_delta_including_shares = current_delta + net_shares  # each share has delta ~ 1
-
-premium = current_price
 
 pl_payoff_grid = payoff_grid - premium
 pl_price_grid = price_grid - premium
@@ -779,33 +800,10 @@ with tab1:
     fig.add_hline(y=0, line_width=1, line_color="black", opacity=0.6)
     fig.add_vline(x=S0, line_dash="dash", line_color="grey", opacity=0.6)
 
-    fig.update_layout(
-        title=dict(text="Payoff and P/L", font=dict(color="#111827")),
-        xaxis_title="Share price S",
-        yaxis_title="P/L ($)",
-        height=420,
-        template="plotly_white",
-        paper_bgcolor="white",
-        plot_bgcolor="white",
-        font=dict(color="#111827"),
-        xaxis=dict(
-            color="#111827",
-            tickfont=dict(color="#111827"),
-        ),
-        yaxis=dict(
-            color="#111827",
-            tickfont=dict(color="#111827"),
-        ),
-        margin=dict(l=40, r=10, t=40, b=30),
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1,
-            font=dict(color="#111827"),
-        ),
-    )
+    apply_white_plotly_theme(fig, height=420)
+    fig.update_layout(title=dict(text="Payoff and P/L", font=dict(color=TEXT_DARK, family=FONT_FAMILY)))
+    fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+    enforce_black_axes(fig, x_title="Share price S", y_title="P/L ($)")
 
     st.plotly_chart(fig, use_container_width=True)
 
@@ -822,11 +820,8 @@ with tab2:
         )
         net_delta_grid = delta_grid + net_shares
         delta_df = pd.DataFrame({"Share price": S_grid, "Net Delta": net_delta_grid})
-        fig_d = px.line(delta_df, x="Share price", y="Net Delta", labels={"Net Delta": "Net Delta"})
-        apply_white_plotly_theme(fig_d, height=320)
-        # Zero line for reference
+        fig_d = line_chart(delta_df, x="Share price", y="Net Delta", height=320, x_title="Share price", y_title="Net Delta")
         fig_d.add_hline(y=0, line_width=1, line_color="black", opacity=0.4)
-        # Mark current spot
         fig_d.add_vline(x=S0, line_dash="dash", line_color="grey", opacity=0.6)
         st.plotly_chart(fig_d, use_container_width=True)
     else:
@@ -835,8 +830,7 @@ with tab2:
             unsafe_allow_html=True,
         )
         delta_df = pd.DataFrame({"Share price": S_grid, "Delta": delta_grid})
-        fig_d = px.line(delta_df, x="Share price", y="Delta", labels={"Delta": "Delta"})
-        apply_white_plotly_theme(fig_d, height=320)
+        fig_d = line_chart(delta_df, x="Share price", y="Delta", height=320, x_title="Share price", y_title="Delta")
         fig_d.add_vline(x=S0, line_dash="dash", line_color="grey", opacity=0.6)
         st.plotly_chart(fig_d, use_container_width=True)
 
@@ -846,8 +840,7 @@ with tab2:
         unsafe_allow_html=True,
     )
     gamma_df = pd.DataFrame({"Share price": S_grid, "Gamma": gamma_grid})
-    fig_g = px.line(gamma_df, x="Share price", y="Gamma", labels={"Gamma": "Gamma (per $)"})
-    apply_white_plotly_theme(fig_g, height=320)
+    fig_g = line_chart(gamma_df, x="Share price", y="Gamma", height=320, x_title="Share price", y_title="Gamma (per $)")
     st.plotly_chart(fig_g, use_container_width=True)
 
     # --- Vega ---
@@ -856,8 +849,7 @@ with tab2:
         unsafe_allow_html=True,
     )
     vega_df = pd.DataFrame({"Share price": S_grid, "Vega": vega_grid})
-    fig_v = px.line(vega_df, x="Share price", y="Vega", labels={"Vega": "Vega ($ per 1%)"})
-    apply_white_plotly_theme(fig_v, height=320)
+    fig_v = line_chart(vega_df, x="Share price", y="Vega", height=320, x_title="Share price", y_title="Vega ($ per 1%)")
     st.plotly_chart(fig_v, use_container_width=True)
 
     # --- Theta ---
@@ -866,8 +858,7 @@ with tab2:
         unsafe_allow_html=True,
     )
     theta_df = pd.DataFrame({"Share price": S_grid, "Theta": theta_grid})
-    fig_t = px.line(theta_df, x="Share price", y="Theta", labels={"Theta": "Theta ($ per day)"})
-    apply_white_plotly_theme(fig_t, height=320)
+    fig_t = line_chart(theta_df, x="Share price", y="Theta", height=320, x_title="Share price", y_title="Theta ($ per day)")
     st.plotly_chart(fig_t, use_container_width=True)
 
 with tab3:
@@ -884,11 +875,11 @@ with tab3:
         with c_left:
             ticker_map = {
                 "Commonwealth Bank (CBA)": "CBA.AX",
-                "Westpac (WBC)": "WBC.AX",
-                "ANZ": "ANZ.AX",
+                "NVIDIA": "NVDA",
+                "TESLA": "TSLA",
                 "NAB": "NAB.AX",
                 "Macquarie Group (MQG)": "MQG.AX",
-                "BHP Group": "BHP.AX",
+                "APPLE": "AAPL",
                 "CSL": "CSL.AX",
                 "Wesfarmers": "WES.AX",
                 "Custom ticker…": "CUSTOM",
@@ -934,17 +925,8 @@ with tab3:
             # Price chart
             price_df = pd.DataFrame({"Date": close.index, "Close": close.values})
             fig_p = px.line(price_df, x="Date", y="Close", title=f"{ticker.upper()} — Close price")
-            fig_p.update_layout(
-                height=360,
-                template="plotly_white",
-                paper_bgcolor="white",
-                plot_bgcolor="white",
-                font=dict(color="#111827"),
-                title=dict(font=dict(color="#111827")),
-                xaxis=dict(color="#111827", tickfont=dict(color="#111827")),
-                yaxis=dict(color="#111827", tickfont=dict(color="#111827")),
-                margin=dict(l=40, r=10, t=40, b=30),
-            )
+            apply_white_plotly_theme(fig_p, height=360)
+            enforce_black_axes(fig_p, x_title="Date", y_title="Close")
             st.plotly_chart(fig_p, use_container_width=True)
 
             # Volatility chart
@@ -975,27 +957,10 @@ with tab3:
             if solved_iv_pct is not None:
                 fig_v.add_hline(y=solved_iv_pct, line_width=1, line_dash="dot", line_color="black")
 
-            fig_v.update_layout(
-                title=dict(text="Realised volatility vs implied/model volatility", font=dict(color="#111827")),
-                xaxis_title="Date",
-                yaxis_title="Volatility (%)",
-                height=420,
-                template="plotly_white",
-                paper_bgcolor="white",
-                plot_bgcolor="white",
-                font=dict(color="#111827"),
-                xaxis=dict(color="#111827", tickfont=dict(color="#111827")),
-                yaxis=dict(color="#111827", tickfont=dict(color="#111827")),
-                margin=dict(l=40, r=10, t=40, b=30),
-                legend=dict(
-                    orientation="h",
-                    yanchor="bottom",
-                    y=1.02,
-                    xanchor="right",
-                    x=1,
-                    font=dict(color="#111827"),
-                ),
-            )
+            apply_white_plotly_theme(fig_v, height=420)
+            fig_v.update_layout(title=dict(text="Realised volatility vs implied/model volatility", font=dict(color=TEXT_DARK, family=FONT_FAMILY)))
+            fig_v.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+            enforce_black_axes(fig_v, x_title="Date", y_title="Volatility (%)")
             st.plotly_chart(fig_v, use_container_width=True)
 
             st.caption(
@@ -1368,19 +1333,16 @@ with tab4:
         pl_hedged = np.full(len(S_T), np.nan)
 
     # Summary stats (include tail percentiles)
-    mean_pl = float(np.mean(pl_unhedged))
-    prob_profit = float(np.mean(pl_unhedged > 0))
+    mean_pl_unhedged = float(np.mean(pl_unhedged))
     p5_unhedged = float(np.percentile(pl_unhedged, 5))
     p95_unhedged = float(np.percentile(pl_unhedged, 95))
 
     if hedge_dyn:
         mean_pl_hedged = float(np.mean(pl_hedged))
-        prob_profit_hedged = float(np.mean(pl_hedged > 0))
         p5_hedged = float(np.percentile(pl_hedged, 5))
         p95_hedged = float(np.percentile(pl_hedged, 95))
     else:
         mean_pl_hedged = np.nan
-        prob_profit_hedged = np.nan
         p5_hedged = np.nan
         p95_hedged = np.nan
 
@@ -1397,15 +1359,11 @@ with tab4:
 
     # Helper: return P/L bubble class for styling (green for profit, red for loss)
     def pl_bubble_class(pl_value: float) -> str:
-        if pl_value is None or np.isnan(pl_value):
+        """Return the CSS class for a P/L bubble (green for >=0, red for <0)."""
+        if pl_value is None or (isinstance(pl_value, float) and np.isnan(pl_value)):
             return ""
         return "mc-positive" if pl_value >= 0 else "mc-negative"
 
-    # Common scale so colours are comparable across hedged/unhedged
-    vals_for_scale = [mean_pl, p5_unhedged, p95_unhedged]
-    if hedge_dyn and (not np.isnan(mean_pl_hedged)):
-        vals_for_scale += [mean_pl_hedged, p5_hedged, p95_hedged]
-    max_abs_pl = float(max([abs(v) for v in vals_for_scale if (v is not None and not np.isnan(v))] + [1.0]))
 
     # Compute Sharpe ratios for both unhedged and hedged
     sharpe_unhedged = sharpe_annualised_from_pl(pl_unhedged, premium_paid, T)
@@ -1417,9 +1375,9 @@ with tab4:
     with u1:
         st.markdown(
             f"""
-            <div class="mc-bubble {pl_bubble_class(mean_pl)}">
+            <div class="mc-bubble {pl_bubble_class(mean_pl_unhedged)}">
                 <div class="mc-bubble-title">Expected P/L</div>
-                <div class="mc-bubble-value">${mean_pl:,.2f}</div>
+                <div class="mc-bubble-value">${mean_pl_unhedged:,.2f}</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -1558,16 +1516,12 @@ with tab4:
         labels={"value": "P/L ($)"},
     )
     fig_hist.update_layout(showlegend=False)
-
     apply_white_plotly_theme(fig_hist, height=420)
     fig_hist.update_layout(
         yaxis_title="Probability (%)",
         xaxis_title="P/L ($)",
     )
-
-    # Force axis titles + ticks to true black for readability
-    fig_hist.update_xaxes(title_font=dict(color="black"), tickfont=dict(color="black"))
-    fig_hist.update_yaxes(title_font=dict(color="black"), tickfont=dict(color="black"))
+    enforce_black_axes(fig_hist, x_title="P/L ($)", y_title="Probability (%)")
     st.plotly_chart(fig_hist, use_container_width=True)
 
     # Show a few sample paths
@@ -1588,10 +1542,7 @@ with tab4:
         xaxis_title="Time (years)",
         yaxis_title="Share price",
     )
-
-    # Force axis titles + ticks to true black for readability
-    fig_paths.update_xaxes(title_font=dict(color="black"), tickfont=dict(color="black"))
-    fig_paths.update_yaxes(title_font=dict(color="black"), tickfont=dict(color="black"))
+    enforce_black_axes(fig_paths, x_title="Time (years)", y_title="Share price")
     st.plotly_chart(fig_paths, use_container_width=True)
 
     st.caption(
